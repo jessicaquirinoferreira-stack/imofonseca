@@ -1,0 +1,55 @@
+{
+  "entities": {
+    "Property": {
+      "title": "Property",
+      "description": "Real estate development listing for Imobiliária Fonseca e Cândido",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "slug": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "title": { "type": "string", "maxLength": 160 },
+        "builder": { "type": "string", "maxLength": 100 },
+        "category": { "type": "string", "enum": ["Minha Casa Minha Vida", "Alto Padrão"] },
+        "priceLabel": { "type": "string", "maxLength": 100 },
+        "priceValue": { "type": "number" },
+        "location": { "type": "string", "maxLength": 160 },
+        "highlight": { "type": "string", "maxLength": 300 },
+        "description": { "type": "string", "maxLength": 3000 },
+        "bedrooms": { "type": "string", "maxLength": 40 },
+        "parking": { "type": "string", "maxLength": 40 },
+        "area": { "type": "string", "maxLength": 40 },
+        "status": { "type": "string", "enum": ["Na Planta", "Em Construção", "Pronto para Morar"] },
+        "images": { "type": "array" },
+        "watermarked": { "type": "boolean" },
+        "featured": { "type": "boolean" }
+      },
+      "required": ["id", "slug", "title", "category", "priceLabel", "priceValue", "location", "highlight", "description", "bedrooms", "parking", "area", "status", "images"]
+    },
+    "SiteConfig": {
+      "title": "SiteConfig",
+      "description": "Global contact and social media configuration for Imobiliária Fonseca e Cândido",
+      "type": "object",
+      "properties": {
+        "whatsapp": { "type": "string", "maxLength": 30 },
+        "instagram": { "type": "string", "maxLength": 250 },
+        "facebook": { "type": "string", "maxLength": 250 },
+        "youtube": { "type": "string", "maxLength": 250 },
+        "tiktok": { "type": "string", "maxLength": 250 },
+        "address": { "type": "string", "maxLength": 300 },
+        "creci": { "type": "string", "maxLength": 60 },
+        "email": { "type": "string", "maxLength": 120 }
+      },
+      "required": ["whatsapp", "address"]
+    }
+  },
+  "firestore": {
+    "/properties/{propertyId}": {
+      "schema": { "$ref": "#/entities/Property" },
+      "description": "Public real estate developments managed by admin"
+    },
+    "/settings/{configId}": {
+      "schema": { "$ref": "#/entities/SiteConfig" },
+      "description": "Global site settings and social media links"
+    }
+  }
+}

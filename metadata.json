@@ -1,0 +1,6 @@
+{
+  "name": "Imobiliária Fonseca e Cândido",
+  "description": "Plataforma imobiliária de alto padrão e Minha Casa Minha Vida com curadoria exclusiva, simulação de financiamento e atendimento personalizado.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
