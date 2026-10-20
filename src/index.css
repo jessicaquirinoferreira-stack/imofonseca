@@ -17,7 +17,7 @@
 
   body {
     font-family: var(--font-sans);
-    background-color: #0B0F14;
+    background-color: #080C10;
     color: #F8FAFC;
     overflow-wrap: break-word;
     word-break: break-word;
@@ -29,12 +29,13 @@
   }
 }
 
+/* Custom Living Luxury Keyframes */
 @keyframes goldShimmer {
   0% {
-    transform: translateX(-120%) skewX(-20deg);
+    transform: translateX(-140%) skewX(-20deg);
   }
   100% {
-    transform: translateX(220%) skewX(-20deg);
+    transform: translateX(240%) skewX(-20deg);
   }
 }
 
@@ -50,9 +51,109 @@
   }
 }
 
+@keyframes floatSlow {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes ambientPulse {
+  0%, 100% {
+    opacity: 0.25;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes pulseRadar {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+}
+
+@keyframes pulseGoldRadar {
+  0% {
+    transform: scale(0.98);
+    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.7);
+  }
+  70% {
+    transform: scale(1.02);
+    box-shadow: 0 0 0 10px rgba(212, 175, 55, 0);
+  }
+  100% {
+    transform: scale(0.98);
+    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0);
+  }
+}
+
+@keyframes marqueeInfinite {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes borderGleam {
+  0%, 100% {
+    border-color: rgba(212, 175, 55, 0.35);
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
+  }
+  50% {
+    border-color: rgba(252, 246, 186, 0.85);
+    box-shadow: 0 0 25px rgba(212, 175, 55, 0.35);
+  }
+}
+
 .animate-ken-burns {
   animation: kenBurnsSlow 24s ease-in-out infinite;
   will-change: transform;
+}
+
+.animate-float {
+  animation: floatSlow 5s ease-in-out infinite;
+}
+
+.animate-ambient-pulse {
+  animation: ambientPulse 8s ease-in-out infinite;
+}
+
+.animate-radar {
+  animation: pulseRadar 2s infinite;
+}
+
+.animate-gold-radar {
+  animation: pulseGoldRadar 2.5s infinite;
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marqueeInfinite 28s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+.animate-border-gleam {
+  animation: borderGleam 4s ease-in-out infinite;
 }
 
 .btn-gold-shimmer {
@@ -65,20 +166,45 @@
   position: absolute;
   top: 0;
   left: 0;
-  width: 45%;
+  width: 50%;
   height: 100%;
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255, 255, 255, 0.45),
+    rgba(255, 255, 255, 0.55),
     transparent
   );
-  animation: goldShimmer 3.8s infinite;
+  animation: goldShimmer 3.2s infinite;
   pointer-events: none;
+}
+
+/* Subtle gold luxury glow utilities */
+.glow-gold-sm {
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.25);
+}
+
+.glow-gold-md {
+  box-shadow: 0 0 30px rgba(212, 175, 55, 0.4);
+}
+
+.glow-gold-lg {
+  box-shadow: 0 0 50px rgba(212, 175, 55, 0.55);
+}
+
+.text-gold-gradient {
+  background: linear-gradient(135deg, #BF953F 0%, #FCF6BA 25%, #B38728 50%, #FBF5B7 75%, #AA771C 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .animate-ken-burns,
+  .animate-float,
+  .animate-ambient-pulse,
+  .animate-radar,
+  .animate-gold-radar,
+  .animate-marquee,
+  .animate-border-gleam,
   .btn-gold-shimmer::after {
     animation: none !important;
   }

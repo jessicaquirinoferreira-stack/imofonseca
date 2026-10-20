@@ -50,6 +50,10 @@
     "/settings/{configId}": {
       "schema": { "$ref": "#/entities/SiteConfig" },
       "description": "Global site settings and social media links"
+    },
+    "/test/{testId}": {
+      "schema": { "$ref": "#/entities/SiteConfig" },
+      "description": "Public connectivity validation endpoint"
     }
   }
 }

@@ -5,8 +5,9 @@ import {
   MessageCircle,
   Sparkles,
   ArrowUpRight,
+  BadgeCheck,
 } from 'lucide-react';
-import { Property } from '../data/seedProperties';
+import { Property, OFFICIAL_LOGO_URL } from '../data/seedProperties';
 import assistantAvatarUrl from '../assets/images/assistant-avatar.jpg';
 
 interface ChatMessage {
@@ -23,10 +24,10 @@ interface VirtualAssistantProps {
 }
 
 const QUICK_QUESTIONS = [
-  'Quais são os imóveis Minha Casa Minha Vida?',
-  'Como funciona a entrada e o FGTS?',
-  'Quais são as mansões de Alto Padrão?',
-  'Quero simular meu financiamento Caixa',
+  'Como funciona a entrada parcelada?',
+  'Financiamento só no término da obra?',
+  'Imóveis Minha Casa Minha Vida',
+  'Simular financiamento Caixa com FGTS',
 ];
 
 export const VirtualAssistant: React.FC<VirtualAssistantProps> = ({
@@ -40,7 +41,7 @@ export const VirtualAssistant: React.FC<VirtualAssistantProps> = ({
     {
       id: 'welcome-1',
       sender: 'assistant',
-      text: 'Olá! Sou a Helena, Assistente Virtual da Imobiliária Fonseca e Cândido. Posso tirar dúvidas rápidas sobre nossos empreendimentos Minha Casa Minha Vida, Mansões de Alto Padrão, uso do FGTS ou simulação Caixa. Como posso ajudar você hoje?',
+      text: 'Olá! Sou a Helena, Concierge Virtual da Imobiliária Fonseca & Cândido. Temos uma condição exclusiva no Minha Casa Minha Vida: parcelamos a sua entrada e o financiamento Caixa só começa quando termina o empreendimento! Como posso te ajudar hoje?',
       whatsappContext:
         'Olá! Vim pela Assistente Virtual do site e gostaria de falar com um consultor de vendas da Imobiliária Fonseca e Cândido.',
     },
@@ -61,6 +62,21 @@ export const VirtualAssistant: React.FC<VirtualAssistantProps> = ({
     const luxuryList = properties.filter((p) => p.category === 'Alto Padrão');
 
     if (
+      q.includes('entrada parcelada') ||
+      q.includes('parcelamos a entrada') ||
+      q.includes('termina') ||
+      q.includes('término') ||
+      q.includes('obra') ||
+      q.includes('quando começa')
+    ) {
+      return {
+        text: 'Exatamente! Na Imobiliária Fonseca & Cândido, a facilidade no Minha Casa Minha Vida é incomparável: parcelamos toda a sua entrada diretamente com a construtora durante a fase de obra, e o financiamento habitacional da Caixa Econômica só começa quando o empreendimento termina e as chaves são entregues! Isso alivia seu orçamento durante a construção. Gostaria de receber uma simulação no WhatsApp?',
+        whatsappContext:
+          'Olá! Estava conversando com a Helena sobre a entrada parcelada e financiamento que só começa no término da obra. Quero fazer uma simulação personalizada!',
+      };
+    }
+
+    if (
       q.includes('minha casa') ||
       q.includes('mcmv') ||
       q.includes('235') ||
@@ -70,9 +86,9 @@ export const VirtualAssistant: React.FC<VirtualAssistantProps> = ({
     ) {
       const names = mcmvList.map((p) => `${p.title} (${p.priceLabel})`).join(' e ');
       return {
-        text: `No segmento Minha Casa Minha Vida, trabalhamos com destaque para: ${names}. Ambos oferecem subsídio do Governo Federal pela Caixa, uso do saldo de FGTS, entrada parcelada e condomínio fechado com área de lazer completa! Deseja receber a simulação exata das parcelas no seu WhatsApp?`,
+        text: `No segmento Minha Casa Minha Vida, trabalhamos com: ${names}. Destaque especial: parcelamos toda a sua entrada durante a obra e seu financiamento Caixa só começa quando o empreendimento termina! Aceita FGTS e subsídio federal de até R$ 55 mil. Deseja receber a simulação exata no seu WhatsApp?`,
         whatsappContext:
-          'Olá! Estava conversando com a Assistente Virtual sobre os apartamentos Minha Casa Minha Vida (R$ 235.000,00) e quero fazer minha simulação no WhatsApp.',
+          'Olá! Estava conversando com a Assistente Virtual sobre os apartamentos Minha Casa Minha Vida com entrada parcelada e financiamento no término da obra.',
       };
     }
 
@@ -89,7 +105,7 @@ export const VirtualAssistant: React.FC<VirtualAssistantProps> = ({
     ) {
       const names = luxuryList.map((p) => `${p.title} (${p.priceLabel})`).join(', ');
       return {
-        text: `Nossa coleção Private de Alto Padrão conta com propriedades exclusivas: ${names}. São imóveis com suítes amplas, arquitetura autoral, lazer resort e segurança máxima. Posso transferir você agora para nosso corretor Private Broker agendar uma apresentação?`,
+        text: `Nossa coleção Private de Alto Padrão da Imobiliária Fonseca & Cândido conta com propriedades exclusivas: ${names}. São residências com suítes master, lazer resort privativo e segurança máxima. Posso transferir você agora para nosso corretor Private Broker?`,
         whatsappContext:
           'Olá! Vim pela Assistente Virtual e tenho interesse no portfólio de Alto Padrão da Imobiliária Fonseca e Cândido.',
       };
@@ -106,30 +122,14 @@ export const VirtualAssistant: React.FC<VirtualAssistantProps> = ({
       q.includes('subsidio')
     ) {
       return {
-        text: 'A aprovação na Imobiliária Fonseca e Cândido é super rápida! Você pode usar seu FGTS para abater na entrada, parcelar o restante diretamente com a construtora e contar com as menores taxas da Caixa Econômica Federal. Clique no botão abaixo para enviar seus dados básicos e receber o cálculo oficial no WhatsApp de Vendas!',
+        text: 'A aprovação na Imobiliária Fonseca & Cândido é super ágil! No Minha Casa Minha Vida você pode usar seu FGTS, parcelar toda a entrada durante as obras e começar a pagar o financiamento Caixa somente quando o empreendimento termina. Clique no botão abaixo para receber a simulação oficial no WhatsApp de Vendas!',
         whatsappContext:
-          'Olá! Vim pela Assistente Virtual e quero fazer uma simulação de financiamento Caixa usando meu FGTS/Renda.',
-      };
-    }
-
-    if (
-      q.includes('endereço') ||
-      q.includes('endereco') ||
-      q.includes('local') ||
-      q.includes('onde fica') ||
-      q.includes('visita') ||
-      q.includes('telefone') ||
-      q.includes('contato')
-    ) {
-      return {
-        text: 'Nosso atendimento é realizado com hora marcada ou imediatamente pelo nosso WhatsApp Oficial de Vendas (+55 35 99716-4518). Clique abaixo para falar direto com nosso especialista e agendar sua visita ao decorado ou empreendimento!',
-        whatsappContext:
-          'Olá! Vim pela Assistente Virtual e gostaria de agendar uma visita / atendimento com a Imobiliária Fonseca e Cândido.',
+          'Olá! Vim pela Assistente Virtual e quero fazer uma simulação oficial com entrada parcelada e financiamento Caixa.',
       };
     }
 
     return {
-      text: `Excelente pergunta! Temos opções desde o Minha Casa Minha Vida (a partir de R$ 235.000,00 com subsídio Caixa) até Empreendimentos de Alto Padrão (de R$ 1,85M a R$ 4,2M). Para te passar os valores exatos de entrada, parcelas e disponibilidade atualizada, clique abaixo para falar direto no nosso WhatsApp de Vendas!`,
+      text: `Excelente pergunta! Na Imobiliária Fonseca & Cândido temos desde o Minha Casa Minha Vida (entrada parcelada e financiamento iniciado só no término da obra) até Empreendimentos de Alto Padrão. Para tirar todas as suas dúvidas e receber valores em primeira mão, fale agora com nosso consultor no WhatsApp!`,
       whatsappContext: `Olá! Estava falando com a Assistente Virtual sobre: "${userQuestion}" e gostaria de atendimento no WhatsApp de Vendas.`,
     };
   };
@@ -160,14 +160,14 @@ export const VirtualAssistant: React.FC<VirtualAssistantProps> = ({
     `https://wa.me/${whatsappNumber.replace(/\D/g, '')}?text=${encodeURIComponent(customMessage)}`;
 
   return (
-    <div className="fixed bottom-4 left-3 sm:bottom-5 sm:left-5 z-40 flex flex-col items-start max-w-[calc(100vw-24px)]">
-      {/* Chat Window — Responsive width that always fits 100% inside mobile viewport */}
+    <div className="fixed bottom-4 left-3 sm:bottom-6 sm:left-6 z-40 flex flex-col items-start max-w-[calc(100vw-24px)]">
+      {/* Chat Window */}
       {isOpen && (
-        <div className="mb-3 w-[calc(100vw-24px)] sm:w-[375px] max-h-[75vh] rounded-2xl bg-[#121820]/98 backdrop-blur-xl border border-[#D4AF37]/45 shadow-[0_20px_60px_rgba(0,0,0,0.85)] flex flex-col overflow-hidden">
+        <div className="mb-3 w-[calc(100vw-24px)] sm:w-[380px] max-h-[76vh] rounded-2xl bg-[#10161F]/98 backdrop-blur-2xl border border-[#D4AF37]/50 shadow-[0_25px_70px_rgba(0,0,0,0.9)] flex flex-col overflow-hidden animate-border-gleam">
           {/* Assistant Header */}
-          <div className="px-3.5 sm:px-4 py-3 bg-gradient-to-r from-[#0B0F14] via-[#18202B] to-[#0B0F14] border-b border-[#D4AF37]/30 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-              <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-[#D4AF37] bg-[#0B0F14] shrink-0">
+          <div className="px-4 py-3 bg-gradient-to-r from-[#080C10] via-[#18202B] to-[#080C10] border-b border-[#D4AF37]/35 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="relative w-11 h-11 rounded-full overflow-hidden border-2 border-[#D4AF37] bg-[#080C10] shrink-0 shadow-md">
                 <img
                   src={avatarSrc}
                   alt="Helena - Consultora Virtual Fonseca e Cândido"
@@ -177,13 +177,16 @@ export const VirtualAssistant: React.FC<VirtualAssistantProps> = ({
                   onError={() => setAvatarSrc('/assistant-avatar.jpg')}
                   className="w-full h-full object-cover"
                 />
+                <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-400 border-2 border-[#080C10] animate-radar" />
               </div>
+
               <div className="min-w-0">
-                <span className="font-serif-luxury text-xs font-bold text-white tracking-wider block">
-                  HELENA · CONCIERGE
+                <span className="font-serif-luxury text-xs font-bold text-white tracking-wider flex items-center gap-1.5">
+                  <span>HELENA · CONCIERGE</span>
+                  <BadgeCheck className="w-3.5 h-3.5 text-[#D4AF37]" />
                 </span>
-                <span className="block text-[11px] text-[#F3E5AB]">
-                  Assistente Fonseca &amp; Cândido
+                <span className="block text-[11px] text-[#F3E5AB] truncate font-medium">
+                  Imobiliária Fonseca &amp; Cândido
                 </span>
               </div>
             </div>
@@ -198,8 +201,13 @@ export const VirtualAssistant: React.FC<VirtualAssistantProps> = ({
             </button>
           </div>
 
+          {/* Quick Announcement inside chat */}
+          <div className="px-3.5 py-1.5 bg-[#D4AF37]/15 border-b border-[#D4AF37]/25 text-[10px] sm:text-[11px] text-[#F3E5AB] font-semibold leading-tight">
+            ⭐ <strong>MCMV:</strong> Parcelamos sua entrada e o financiamento começa quando termina a obra!
+          </div>
+
           {/* Messages Feed */}
-          <div className="p-3.5 sm:p-4 space-y-3.5 overflow-y-auto max-h-[290px] sm:max-h-[340px] bg-[#0B0F14]/70">
+          <div className="p-3.5 sm:p-4 space-y-3.5 overflow-y-auto max-h-[290px] sm:max-h-[340px] bg-[#080C10]/80">
             {messages.map((msg) => (
               <div
                 key={msg.id}
@@ -221,8 +229,8 @@ export const VirtualAssistant: React.FC<VirtualAssistantProps> = ({
                   <div
                     className={`rounded-2xl px-3.5 py-2.5 text-xs sm:text-[13px] leading-relaxed break-words ${
                       msg.sender === 'user'
-                        ? 'bg-[#D4AF37] text-[#0B0F14] font-semibold rounded-br-xs'
-                        : 'bg-[#18202B] text-slate-200 border border-[#D4AF37]/20 rounded-bl-xs'
+                        ? 'bg-[#D4AF37] text-[#080C10] font-bold rounded-br-xs'
+                        : 'bg-[#18202B] text-slate-200 border border-[#D4AF37]/30 rounded-bl-xs'
                     }`}
                   >
                     {msg.text}
@@ -234,7 +242,7 @@ export const VirtualAssistant: React.FC<VirtualAssistantProps> = ({
                     href={buildWhatsAppLink(msg.whatsappContext)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-2 ml-8 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#D4AF37]/15 hover:bg-[#D4AF37] text-[#F3E5AB] hover:text-[#0B0F14] border border-[#D4AF37]/40 text-[11px] font-bold transition-colors"
+                    className="mt-2 ml-8 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#D4AF37] hover:bg-[#F3E5AB] text-[#080C10] font-extrabold text-[11px] transition-all shadow-md hover:scale-102"
                   >
                     <MessageCircle className="w-3.5 h-3.5 shrink-0" />
                     <span>Continuar no WhatsApp de Vendas</span>
@@ -246,9 +254,9 @@ export const VirtualAssistant: React.FC<VirtualAssistantProps> = ({
             <div ref={chatEndRef} />
           </div>
 
-          {/* Quick Suggestion Chips — Wrapped so every question is 100% visible */}
-          <div className="px-3.5 py-2.5 bg-[#121820] border-t border-white/10">
-            <div className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-[#D4AF37] font-semibold mb-1.5">
+          {/* Quick Suggestion Chips */}
+          <div className="px-3.5 py-2.5 bg-[#141C26] border-t border-white/10">
+            <div className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-[#D4AF37] font-bold mb-1.5">
               <Sparkles className="w-3 h-3 shrink-0" />
               <span>Dúvidas Frequentes (Toque para perguntar):</span>
             </div>
@@ -258,7 +266,7 @@ export const VirtualAssistant: React.FC<VirtualAssistantProps> = ({
                   key={q}
                   type="button"
                   onClick={() => handleSendMessage(q)}
-                  className="px-2.5 py-1.5 rounded-lg bg-[#0B0F14] hover:bg-[#D4AF37]/20 border border-white/10 hover:border-[#D4AF37]/40 text-[11px] text-slate-200 hover:text-[#F3E5AB] transition-colors text-left cursor-pointer"
+                  className="px-2.5 py-1.5 rounded-lg bg-[#080C10] hover:bg-[#D4AF37]/20 border border-[#D4AF37]/25 hover:border-[#D4AF37] text-[11px] text-slate-200 hover:text-[#F3E5AB] transition-colors text-left cursor-pointer font-medium"
                 >
                   {q}
                 </button>
@@ -272,19 +280,19 @@ export const VirtualAssistant: React.FC<VirtualAssistantProps> = ({
               e.preventDefault();
               handleSendMessage();
             }}
-            className="p-3 bg-[#0B0F14] border-t border-white/10 flex items-center gap-2"
+            className="p-3 bg-[#080C10] border-t border-white/10 flex items-center gap-2"
           >
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Digite sua dúvida sobre os imóveis..."
+              placeholder="Digite sua dúvida..."
               className="flex-1 min-w-0 bg-[#18202B] border border-white/15 rounded-xl px-3.5 py-2 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#D4AF37]"
             />
             <button
               type="submit"
               aria-label="Enviar pergunta"
-              className="w-9 h-9 rounded-xl bg-[#D4AF37] hover:bg-[#F3E5AB] text-[#0B0F14] flex items-center justify-center transition-colors shrink-0 cursor-pointer"
+              className="w-9 h-9 rounded-xl bg-[#D4AF37] hover:bg-[#F3E5AB] text-[#080C10] flex items-center justify-center transition-colors shrink-0 cursor-pointer shadow-md"
             >
               <Send className="w-4 h-4" />
             </button>
@@ -292,14 +300,14 @@ export const VirtualAssistant: React.FC<VirtualAssistantProps> = ({
         </div>
       )}
 
-      {/* Floating Trigger Button on Bottom-Left with Real Human Portrait */}
+      {/* Floating Trigger Button with Helena Portrait + Fonseca & Cândido Crest Badge */}
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         aria-label="Abrir Assistente Virtual"
-        className="group flex items-center gap-3 p-1.5 sm:p-2 sm:pr-4 rounded-full sm:rounded-2xl bg-[#18202B]/95 hover:bg-[#121820] border border-[#D4AF37]/60 shadow-[0_10px_30px_rgba(0,0,0,0.75)] transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
+        className="group relative flex items-center gap-3 p-1.5 sm:p-2 sm:pr-4 rounded-full sm:rounded-2xl bg-[#141C26]/95 hover:bg-[#18202B] border-2 border-[#D4AF37] shadow-[0_10px_35px_rgba(0,0,0,0.85)] transition-all duration-300 hover:scale-105 cursor-pointer animate-gold-radar"
       >
-        <div className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-full overflow-hidden border-2 border-[#D4AF37] shadow-md shrink-0 bg-[#0B0F14]">
+        <div className="relative w-12 h-12 sm:w-13 sm:h-13 rounded-full overflow-hidden border-2 border-[#D4AF37] shadow-lg shrink-0 bg-[#080C10]">
           <img
             src={avatarSrc}
             alt="Helena - Assistente Virtual"
@@ -308,15 +316,27 @@ export const VirtualAssistant: React.FC<VirtualAssistantProps> = ({
             fetchPriority="high"
             referrerPolicy="no-referrer"
             onError={() => setAvatarSrc('/assistant-avatar.jpg')}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
           />
+          {/* Layered brand crest stamp */}
+          <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full overflow-hidden border border-[#D4AF37] bg-[#080C10] shadow-sm">
+            <img
+              src={OFFICIAL_LOGO_URL}
+              alt="Logo Fonseca e Cândido"
+              className="w-full h-full object-cover"
+            />
+          </div>
         </div>
+
         <div className="text-left hidden sm:block">
-          <span className="block text-[10px] uppercase tracking-wider text-[#F3E5AB] font-semibold">
-            Helena · Assistente Virtual
+          <span className="block text-[10px] uppercase tracking-wider text-[#D4AF37] font-bold">
+            Imobiliária Fonseca &amp; Cândido
           </span>
-          <span className="block text-xs font-bold text-white">
-            {isOpen ? 'Fechar Atendimento' : 'Tirar Dúvidas Rápidas'}
+          <span className="block text-xs font-extrabold text-white">
+            {isOpen ? 'Fechar Atendimento' : 'Helena · Concierge Virtual'}
+          </span>
+          <span className="block text-[10px] text-[#F3E5AB]">
+            Tirar dúvidas sobre MCMV e Entrada
           </span>
         </div>
       </button>

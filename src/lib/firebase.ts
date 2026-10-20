@@ -50,10 +50,8 @@ export const isFirebaseConfigured = Boolean(
 );
 
 export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-export const db = getFirestore(
-  app,
-  (firebaseConfig as { firestoreDatabaseId?: string }).firestoreDatabaseId
-);
+const customDbId = (firebaseConfig as { firestoreDatabaseId?: string })?.firestoreDatabaseId;
+export const db = customDbId ? getFirestore(app, customDbId) : getFirestore(app);
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 

@@ -82,9 +82,9 @@ export const SEED_PROPERTIES: Property[] = [
     priceLabel: 'R$ 235.000,00',
     priceValue: 235000,
     location: 'Vetor de Expansão Valorizado • Acesso Rápido ao Centro',
-    highlight: 'Apartamento na planta, entrada facilitada em até 60x, subsídio Caixa e lazer de clube.',
+    highlight: 'Minha Casa Minha Vida: Parcelamos a sua entrada e o financiamento Caixa só começa quando termina o empreendimento! Use FGTS e subsídio.',
     description:
-      'O Residencial Parque 1453 eleva o padrão do programa Minha Casa Minha Vida com projeto arquitetônico moderno, torres com elevador, varanda integrada à sala de dois ambientes e ventilação cruzada. O condomínio oferece lazer completo entregue mobiliado e decorado, portaria com controle de acesso biométrico, áreas verdes preservadas e baixo custo condominial. Ideal tanto para conquista do primeiro imóvel com uso do FGTS quanto para investidores buscando alta liquidez.',
+      'Apresentado com exclusividade pela Imobiliária Fonseca & Cândido. No Residencial Parque 1453 você conquista seu apartamento pelo Minha Casa Minha Vida com condições imperdíveis: parcelamos toda a entrada durante o período da obra e você só começa a pagar o financiamento bancário da Caixa quando o empreendimento termina! Projeto arquitetônico contemporâneo com elevador, varanda gourmet integrada, lazer de clube completo entregue equipado e portaria com biometria.',
     bedrooms: '2 Dormitórios',
     parking: '1 Vaga Privativa',
     area: '48,5 m² a 52 m²',
@@ -96,7 +96,7 @@ export const SEED_PROPERTIES: Property[] = [
       suites: 'Planta Inteligente Reversível',
       condoFee: 'Taxa Estimada R$ 220/mês',
       deliveryForecast: 'Entrega Garantida Caixa • 24 Meses',
-      financingType: 'Minha Casa Minha Vida (Subsídio + FGTS)',
+      financingType: 'MCMV: Entrada Parcelada na Obra • Financiamento Só Começa Quando Termina o Empreendimento',
       flooringAndFinish: 'Cerâmica retificada extra, bancadas em granito e esquadrias em alumínio branco',
       securityFeatures: 'Guarita blindada 24h, circuito CFTV HD, cerca elétrica perimetral e acesso por tag',
       amenities: [
@@ -149,9 +149,9 @@ export const SEED_PROPERTIES: Property[] = [
     priceLabel: 'R$ 235.000,00',
     priceValue: 235000,
     location: 'Bairro Planejado • Próximo a Parques, Escolas e Supermercados',
-    highlight: 'Subsídio do governo federal, acabamento diferenciado e área de lazer completa para a família.',
+    highlight: 'Minha Casa Minha Vida: Parcelamos a sua entrada! O financiamento Caixa começa somente quando termina o empreendimento.',
     description:
-      'O Residencial Reserva dos Ipês combina o conforto de um condomínio clube fechado com as condições imbatíveis do programa Minha Casa Minha Vida. As unidades contam com planta funcional de 2 quartos, sala integrada, cozinha estilo americana com área de serviço isolada e excelente incidência solar. A infraestrutura de lazer inclui piscina, área gourmet com churrasqueira, espaço kids, quadra recreativa e paisagismo nativo.',
+      'Parceria oficial Imobiliária Fonseca & Cândido e Vital Construtora. O Residencial Reserva dos Ipês oferece a maior tranquilidade de pagamento: entrada parcelada durante todo o período de obras e o início do financiamento Caixa apenas quando o empreendimento termina! Condomínio clube fechado com segurança 24h, piscina, bosque nativo e lazer incomparável para sua família.',
     bedrooms: '2 Dormitórios Amplos',
     parking: '1 Vaga Demarcada',
     area: '50,4 m² Privativos',
@@ -163,7 +163,7 @@ export const SEED_PROPERTIES: Property[] = [
       suites: 'Opção de Planta Garden Térreo',
       condoFee: 'Taxa Estimada R$ 210/mês',
       deliveryForecast: 'Obras Aceleradas • Garantia Caixa',
-      financingType: 'Minha Casa Minha Vida • Taxa Reduzida',
+      financingType: 'MCMV: Entrada 100% Parcelada • Financiamento Só Começa no Término da Obra',
       flooringAndFinish: 'Piso laminado nos quartos, porcelanato nas áreas molhadas e louças Celite/Deca',
       securityFeatures: 'Portaria 24h com controle de pedestres e veículos, iluminação em LED e câmeras',
       amenities: [
@@ -446,13 +446,15 @@ export function normalizePropertyImages(property: Property): Property {
     const primaryFacade = seedMatch.images[0];
     const rest = filteredImages.filter((img) => img !== primaryFacade);
     return {
-      ...seedMatch,
       ...property,
+      ...seedMatch,
       title:
         property.title === 'Parque 1453 (Vital Construtora)'
           ? 'Residencial Parque 1453'
-          : property.title,
-      specs: property.specs || seedMatch.specs,
+          : seedMatch.title,
+      highlight: seedMatch.highlight,
+      description: seedMatch.description,
+      specs: seedMatch.specs,
       images: [primaryFacade, ...rest],
     };
   }
