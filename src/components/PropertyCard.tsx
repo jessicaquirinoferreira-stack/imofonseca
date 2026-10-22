@@ -12,7 +12,12 @@ import {
   Images,
   BadgeCheck,
 } from 'lucide-react';
-import { Property, OFFICIAL_LOGO_URL } from '../data/seedProperties';
+import {
+  Property,
+  OFFICIAL_LOGO_URL,
+  hasPropertyPrice,
+  getPropertyWhatsAppLink,
+} from '../data/seedProperties';
 import { SmartPropertyImage } from './SmartPropertyImage';
 import { preloadPropertyGallery } from '../utils/imagePreloader';
 
@@ -32,11 +37,13 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   const totalImages = property.images.length;
   const coverImageUrl = property.images[0];
   const isMCMV = property.category === 'Minha Casa Minha Vida';
+  const hasPrice = hasPropertyPrice(property);
 
-  const whatsappMessage = `Olá! Vi o empreendimento *${property.title}* (${property.category} - ${property.priceLabel}) no site da Imobiliária Fonseca e Cândido e gostaria de receber simulação com entrada parcelada e financiamento Caixa.`;
-  const whatsappHref = `https://wa.me/${whatsappNumber.replace(/\D/g, '')}?text=${encodeURIComponent(
-    whatsappMessage
-  )}`;
+  const whatsappHref = getPropertyWhatsAppLink(
+    property,
+    whatsappNumber,
+    hasPrice ? 'simulacao' : 'consulta'
+  );
 
   const topAmenities = property.specs?.amenities?.slice(0, 4) || [
     'Lazer Completo Equipado',
@@ -97,16 +104,28 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             </span>
           </div>
 
-          {/* Bottom Price over Image */}
+          {/* Bottom Price or Consultar Badge over Image */}
           <div className="absolute bottom-3 left-3.5 right-3.5 z-10 flex flex-wrap items-end justify-between gap-2 pointer-events-none">
-            <div>
-              <span className="block text-[10px] uppercase tracking-widest text-slate-300">
-                Valor de Investimento
-              </span>
-              <span className="font-mono tabular-nums text-lg sm:text-2xl font-black text-[#D4AF37] drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">
-                {property.priceLabel}
-              </span>
-            </div>
+            {hasPrice ? (
+              <div>
+                <span className="block text-[10px] uppercase tracking-widest text-slate-300">
+                  Valor de Investimento
+                </span>
+                <span className="font-mono tabular-nums text-lg sm:text-2xl font-black text-[#D4AF37] drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">
+                  {property.priceLabel}
+                </span>
+              </div>
+            ) : (
+              <div>
+                <span className="block text-[10px] uppercase tracking-widest text-slate-300">
+                  Condições Comerciais
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-[#080C10] text-xs sm:text-sm font-black shadow-[0_4px_16px_rgba(212,175,55,0.4)]">
+                  <MessageSquare className="w-3.5 h-3.5 shrink-0" />
+                  Consultar Preço
+                </span>
+              </div>
+            )}
             <span className="text-[11px] sm:text-xs font-bold text-[#F3E5AB] group-hover:underline flex items-center gap-1">
               Ver galeria completa →
             </span>
@@ -268,7 +287,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           className="btn-gold-shimmer flex items-center justify-center gap-2 py-3 px-3.5 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-[#080C10] text-xs font-black transition-all text-center shadow-[0_0_20px_rgba(212,175,55,0.3)] hover:scale-102"
         >
           <MessageSquare className="w-3.5 h-3.5 shrink-0" />
-          <span>Simular no WhatsApp</span>
+          <span>{hasPrice ? 'Simular no WhatsApp' : 'Consultar no WhatsApp'}</span>
         </a>
       </div>
     </article>

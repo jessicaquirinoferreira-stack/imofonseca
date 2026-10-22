@@ -20,7 +20,13 @@ import {
   BadgeCheck,
   CalendarCheck,
 } from 'lucide-react';
-import { Property, SiteConfig, OFFICIAL_LOGO_URL } from '../data/seedProperties';
+import {
+  Property,
+  SiteConfig,
+  OFFICIAL_LOGO_URL,
+  hasPropertyPrice,
+  getPropertyWhatsAppLink,
+} from '../data/seedProperties';
 import { SmartPropertyImage } from './SmartPropertyImage';
 import { FinancingSimulator } from './FinancingSimulator';
 import { preloadPropertyGallery, preloadSingleImage } from '../utils/imagePreloader';
@@ -44,6 +50,7 @@ export const PropertyLandingPage: React.FC<PropertyLandingPageProps> = ({
 
   const totalImages = property.images.length;
   const isMCMV = property.category === 'Minha Casa Minha Vida';
+  const hasPrice = hasPropertyPrice(property);
 
   useEffect(() => {
     setActiveImageIdx(0);
@@ -93,10 +100,11 @@ export const PropertyLandingPage: React.FC<PropertyLandingPageProps> = ({
     setTimeout(() => setCopiedLink(false), 2500);
   };
 
-  const whatsappDirectMsg = `Olá! Estou analisando o dossiê completo do empreendimento *${property.title}* (${property.priceLabel}) no site da Imobiliária Fonseca e Cândido e gostaria de agendar uma visita e fazer uma simulação com entrada parcelada.`;
-  const whatsappHref = `https://wa.me/${siteConfig.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(
-    whatsappDirectMsg
-  )}`;
+  const whatsappHref = getPropertyWhatsAppLink(
+    property,
+    siteConfig.whatsapp,
+    hasPrice ? 'simulacao' : 'consulta'
+  );
 
   const handlePrevHeroImage = () => {
     setActiveImageIdx((prev) => (prev - 1 + totalImages) % totalImages);
@@ -164,7 +172,7 @@ export const PropertyLandingPage: React.FC<PropertyLandingPageProps> = ({
               rel="noopener noreferrer"
               className="btn-gold-shimmer px-4 py-2 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-[#080C10] text-[11px] sm:text-xs font-extrabold uppercase tracking-wider shadow-md"
             >
-              Falar no WhatsApp
+              {hasPrice ? 'Falar no WhatsApp' : 'Consultar Valores'}
             </a>
           </div>
         </div>
@@ -198,11 +206,17 @@ export const PropertyLandingPage: React.FC<PropertyLandingPageProps> = ({
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#141C26] p-4 sm:p-5 rounded-2xl border border-[#D4AF37]/45 w-full lg:w-auto shadow-xl">
               <div>
                 <span className="block text-xs uppercase tracking-wider text-slate-400">
-                  Valor de Investimento
+                  {hasPrice ? 'Valor de Investimento' : 'Valores & Condições'}
                 </span>
-                <span className="font-mono tabular-nums text-xl sm:text-3xl font-black text-[#D4AF37]">
-                  {property.priceLabel}
-                </span>
+                {hasPrice ? (
+                  <span className="font-mono tabular-nums text-xl sm:text-3xl font-black text-[#D4AF37]">
+                    {property.priceLabel}
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-2 font-serif-luxury text-xl sm:text-2xl font-black text-[#F3E5AB]">
+                    <span>Sob Consulta</span>
+                  </span>
+                )}
               </div>
               <a
                 href={whatsappHref}
@@ -211,7 +225,7 @@ export const PropertyLandingPage: React.FC<PropertyLandingPageProps> = ({
                 className="btn-gold-shimmer w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-3.5 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-[#080C10] font-black text-xs sm:text-sm text-center uppercase tracking-wider shadow-md hover:scale-102 transition-all"
               >
                 <MessageSquare className="w-4 h-4 shrink-0" />
-                <span>Simular Proposta Agora</span>
+                <span>{hasPrice ? 'Simular Proposta Agora' : 'Consultar Preço no WhatsApp'}</span>
               </a>
             </div>
           </div>

@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
-import { Calculator, ArrowRight, Sparkles, CalendarCheck, ShieldCheck } from 'lucide-react';
-import { Property, OFFICIAL_LOGO_URL } from '../data/seedProperties';
+import { Calculator, ArrowRight, Sparkles, CalendarCheck, ShieldCheck, MessageSquare } from 'lucide-react';
+import {
+  Property,
+  OFFICIAL_LOGO_URL,
+  hasPropertyPrice,
+  buildPropertyWhatsAppSummary,
+  getPropertyWhatsAppLink,
+} from '../data/seedProperties';
 
 interface FinancingSimulatorProps {
   whatsappNumber: string;
@@ -19,8 +25,10 @@ export const FinancingSimulator: React.FC<FinancingSimulatorProps> = ({
   const activeProp =
     properties.find((p) => p.id === selectedPropertyId) || defaultProperty || properties[0];
 
+  const activeHasPrice = activeProp ? hasPropertyPrice(activeProp) : true;
+
   const [propertyValue, setPropertyValue] = useState<number>(
-    activeProp?.priceValue || 235000
+    activeProp && activeProp.priceValue > 0 ? activeProp.priceValue : 235000
   );
   const [downPaymentPercent, setDownPaymentPercent] = useState<number>(20);
   const [years, setYears] = useState<number>(35);
@@ -30,7 +38,9 @@ export const FinancingSimulator: React.FC<FinancingSimulatorProps> = ({
     setSelectedPropertyId(id);
     const found = properties.find((p) => p.id === id);
     if (found) {
-      setPropertyValue(found.priceValue);
+      if (found.priceValue > 0) {
+        setPropertyValue(found.priceValue);
+      }
       setDownPaymentPercent(found.category === 'Minha Casa Minha Vida' ? 15 : 25);
     }
   };
@@ -63,19 +73,36 @@ export const FinancingSimulator: React.FC<FinancingSimulatorProps> = ({
   const formatBRL = (val: number) =>
     val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-  const whatsappSimMessage = `Olá! Fiz uma simulação oficial no site da Imobiliária Fonseca e Cândido:\n- Empreendimento: *${
-    activeProp?.title || 'Personalizado'
-  }*\n- Valor do Imóvel: ${formatBRL(propertyValue)}\n- Entrada: ${formatBRL(
-    downPaymentAmount
-  )} (${downPaymentPercent}%)\n- Condição: *Entrada Parcelada & Financiamento Caixa Só Começa Quando Termina o Empreendimento*\n- Renda Familiar: ${formatBRL(
-    familyIncome
-  )}\n- Prazo: ${years} anos\n- Parcela Estimada: *${formatBRL(
-    monthlyInstallment
-  )}/mês*\nGostaria de receber a aprovação de crédito oficial da Caixa Econômica!`;
+  // Complete property summary included in WhatsApp message in both cases
+  const propSummary = activeProp ? buildPropertyWhatsAppSummary(activeProp) : '';
 
-  const whatsappUrl = `https://wa.me/${whatsappNumber.replace(/\D/g, '')}?text=${encodeURIComponent(
-    whatsappSimMessage
-  )}`;
+  const whatsappSimMessage = activeHasPrice
+    ? `🏛️ *IMOBILIÁRIA FONSECA & CÂNDIDO*
+Olá! Fiz uma simulação de financiamento no site para o seguinte empreendimento:
+
+${propSummary}
+
+📊 *DADOS DA MINHA SIMULAÇÃO:*
+- Valor Base Simulado: ${formatBRL(propertyValue)}
+- Entrada: ${formatBRL(downPaymentAmount)} (${downPaymentPercent}%)
+- Renda Familiar: ${formatBRL(familyIncome)}
+- Prazo: ${years} anos
+- 1ª Parcela Estimada: *${formatBRL(monthlyInstallment)}/mês* (Inicia somente no término da obra!)
+
+Gostaria de receber a aprovação de crédito oficial da Caixa Econômica e agendar uma apresentação!`
+    : activeProp
+    ? getPropertyWhatsAppLink(activeProp, whatsappNumber, 'consulta')
+    : `https://wa.me/${whatsappNumber.replace(/\D/g, '')}?text=${encodeURIComponent(
+        'Olá! Gostaria de uma simulação exclusiva de financiamento com a Imobiliária Fonseca e Cândido.'
+      )}`;
+
+  const whatsappUrl = activeHasPrice
+    ? `https://wa.me/${whatsappNumber.replace(/\D/g, '')}?text=${encodeURIComponent(
+        whatsappSimMessage
+      )}`
+    : activeProp
+    ? getPropertyWhatsAppLink(activeProp, whatsappNumber, 'consulta')
+    : `https://wa.me/${whatsappNumber.replace(/\D/g, '')}`;
 
   return (
     <section
@@ -136,7 +163,7 @@ export const FinancingSimulator: React.FC<FinancingSimulatorProps> = ({
                   >
                     {properties.map((p) => (
                       <option key={p.id} value={p.id}>
-                        {p.title} — {p.priceLabel} ({p.category})
+                        {p.title} — {hasPropertyPrice(p) ? p.priceLabel : 'Sob Consulta'} ({p.category})
                       </option>
                     ))}
                   </select>
@@ -270,13 +297,26 @@ export const FinancingSimulator: React.FC<FinancingSimulatorProps> = ({
                 </span>
               </div>
 
+              {!activeHasPrice && (
+                <div className="p-3.5 rounded-xl bg-[#D4AF37]/15 border border-[#D4AF37]/45 text-xs text-[#F3E5AB] flex items-start gap-2">
+                  <Sparkles className="w-4 h-4 text-[#D4AF37] shrink-0 mt-0.5" />
+                  <span>
+                    Este empreendimento está com <strong>tabela sob consulta</strong>. Para receber a tabela oficial de preços e disponibilidade, clique no botão abaixo.
+                  </span>
+                </div>
+              )}
+
               <a
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-gold-shimmer w-full flex items-center justify-center gap-2 py-3.5 sm:py-4 px-4 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-[#080C10] font-black text-xs sm:text-sm text-center uppercase tracking-wider transition-all shadow-[0_0_25px_rgba(212,175,55,0.4)] hover:scale-102"
               >
-                <span>Aprovar Simulação no WhatsApp</span>
+                <span>
+                  {activeHasPrice
+                    ? 'Aprovar Simulação no WhatsApp'
+                    : 'Consultar Preço e Tabela no WhatsApp'}
+                </span>
                 <ArrowRight className="w-4 h-4 shrink-0" />
               </a>
             </div>

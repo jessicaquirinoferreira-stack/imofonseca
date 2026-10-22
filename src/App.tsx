@@ -2,19 +2,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   collection,
   doc,
-  getDocs,
-  getDoc,
   setDoc,
   deleteDoc,
-  query,
-  where,
+  onSnapshot,
 } from 'firebase/firestore';
 import {
   db,
-  auth,
   isFirebaseConfigured,
-  handleFirestoreError,
-  OperationType,
 } from './lib/firebase';
 import {
   SEED_PROPERTIES,
@@ -35,8 +29,24 @@ import { WhatsAppButton } from './components/WhatsAppButton';
 import { VirtualAssistant } from './components/VirtualAssistant';
 import { Footer } from './components/Footer';
 
-const LOCAL_STORAGE_PROPERTIES_KEY = 'fc_imoveis_properties_v4';
-const LOCAL_STORAGE_CONFIG_KEY = 'fc_imoveis_config_v4';
+const LOCAL_STORAGE_PROPERTIES_KEY = 'fc_imoveis_properties_v5';
+const LOCAL_STORAGE_CONFIG_KEY = 'fc_imoveis_config_v5';
+
+function mergePropertiesWithSeeds(stored: Property[]): Property[] {
+  const map = new Map<string, Property>();
+  SEED_PROPERTIES.forEach((p) => map.set(p.id, p));
+  if (Array.isArray(stored)) {
+    stored.forEach((p) => {
+      const existing = map.get(p.id);
+      map.set(p.id, {
+        ...existing,
+        ...p,
+        specs: p.specs || existing?.specs,
+      });
+    });
+  }
+  return Array.from(map.values()).map((p: Property) => normalizePropertyImages(p));
+}
 
 export default function App() {
   const [properties, setProperties] = useState<Property[]>(() => {
@@ -45,13 +55,13 @@ export default function App() {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.map((p: Property) => normalizePropertyImages(p));
+          return mergePropertiesWithSeeds(parsed);
         }
       }
     } catch {
-      // ignore localStorage error
+      // ignore
     }
-    return SEED_PROPERTIES;
+    return SEED_PROPERTIES.map((p: Property) => normalizePropertyImages(p));
   });
 
   const [siteConfig, setSiteConfig] = useState<SiteConfig>(() => {
@@ -112,57 +122,98 @@ export default function App() {
     setActiveSlug(null);
   }, []);
 
-  // Load initial data from Firestore if configured & available
+  // 1. Cross-tab & multi-window instant reactive synchronization
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === LOCAL_STORAGE_PROPERTIES_KEY && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          if (Array.isArray(parsed)) {
+            setProperties(mergePropertiesWithSeeds(parsed));
+          }
+        } catch {}
+      } else if (e.key === LOCAL_STORAGE_CONFIG_KEY && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          setSiteConfig({ ...INITIAL_SITE_CONFIG, ...parsed });
+        } catch {}
+      }
+    };
+
+    const handlePropsUpdated = (e: Event) => {
+      const custom = e as CustomEvent<Property[]>;
+      if (custom.detail) {
+        setProperties(custom.detail);
+      }
+    };
+
+    const handleConfigUpdated = (e: Event) => {
+      const custom = e as CustomEvent<SiteConfig>;
+      if (custom.detail) {
+        setSiteConfig(custom.detail);
+      }
+    };
+
+    window.addEventListener('storage', handleStorage);
+    window.addEventListener('properties-updated', handlePropsUpdated);
+    window.addEventListener('config-updated', handleConfigUpdated);
+
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('properties-updated', handlePropsUpdated);
+      window.removeEventListener('config-updated', handleConfigUpdated);
+    };
+  }, []);
+
+  // 2. Real-time live Firestore synchronization via onSnapshot
   useEffect(() => {
     if (!isFirebaseConfigured) return;
 
-    async function syncFromFirestore() {
-      try {
-        const mcmvQuery = query(
-          collection(db, 'properties'),
-          where('category', '==', 'Minha Casa Minha Vida')
-        );
-        const luxuryQuery = query(
-          collection(db, 'properties'),
-          where('category', '==', 'Alto Padrão')
-        );
-
-        const [mcmvSnap, luxurySnap] = await Promise.all([
-          getDocs(mcmvQuery),
-          getDocs(luxuryQuery),
-        ]);
-
-        const fetched: Property[] = [];
-        mcmvSnap.forEach((d) =>
-          fetched.push(normalizePropertyImages(d.data() as Property))
-        );
-        luxurySnap.forEach((d) =>
-          fetched.push(normalizePropertyImages(d.data() as Property))
-        );
-
-        if (fetched.length > 0) {
-          setProperties(fetched);
-          localStorage.setItem(
-            LOCAL_STORAGE_PROPERTIES_KEY,
-            JSON.stringify(fetched)
-          );
+    const unsubscribeProperties = onSnapshot(
+      collection(db, 'properties'),
+      (snapshot) => {
+        if (!snapshot.empty) {
+          const remoteProps: Property[] = [];
+          snapshot.forEach((docSnap) => {
+            remoteProps.push(normalizePropertyImages(docSnap.data() as Property));
+          });
+          setProperties((prev) => {
+            const map = new Map<string, Property>();
+            SEED_PROPERTIES.forEach((p) => map.set(p.id, p));
+            prev.forEach((p) => map.set(p.id, p));
+            remoteProps.forEach((p) => map.set(p.id, p));
+            const merged = Array.from(map.values()).map(normalizePropertyImages);
+            localStorage.setItem(LOCAL_STORAGE_PROPERTIES_KEY, JSON.stringify(merged));
+            return merged;
+          });
         }
-
-        const configDoc = await getDoc(doc(db, 'settings', 'global'));
-        if (configDoc.exists()) {
-          const remoteConfig = configDoc.data() as SiteConfig;
-          setSiteConfig(remoteConfig);
-          localStorage.setItem(
-            LOCAL_STORAGE_CONFIG_KEY,
-            JSON.stringify(remoteConfig)
-          );
-        }
-      } catch {
-        // Hybrid fallback keeps seed data active
+      },
+      (error) => {
+        console.warn('Realtime properties snapshot listener warning:', error);
       }
-    }
+    );
 
-    syncFromFirestore();
+    const unsubscribeSettings = onSnapshot(
+      doc(db, 'settings', 'global'),
+      (snapshot) => {
+        if (snapshot.exists()) {
+          const remoteConfig = snapshot.data() as SiteConfig;
+          setSiteConfig((prev) => {
+            const merged = { ...prev, ...remoteConfig };
+            localStorage.setItem(LOCAL_STORAGE_CONFIG_KEY, JSON.stringify(merged));
+            return merged;
+          });
+        }
+      },
+      (error) => {
+        console.warn('Realtime settings snapshot listener warning:', error);
+      }
+    );
+
+    return () => {
+      unsubscribeProperties();
+      unsubscribeSettings();
+    };
   }, []);
 
   const handleSaveProperty = async (property: Property, _isNew: boolean) => {
@@ -172,7 +223,7 @@ export default function App() {
       title: property.title.slice(0, 160),
       builder: (property.builder || 'Imobiliária Fonseca e Cândido').slice(0, 100),
       category: property.category,
-      priceLabel: property.priceLabel.slice(0, 100),
+      priceLabel: (property.priceLabel || 'Sob Consulta').slice(0, 100),
       priceValue: Math.max(0, Number(property.priceValue) || 0),
       location: property.location.slice(0, 160),
       highlight: property.highlight.slice(0, 300),
@@ -181,25 +232,35 @@ export default function App() {
       parking: property.parking.slice(0, 40),
       area: property.area.slice(0, 40),
       status: property.status,
-      images: property.images.slice(0, 50),
+      images: property.images.slice(0, 60),
       watermarked: Boolean(property.watermarked),
       featured: Boolean(property.featured),
+      specs: property.specs,
     };
 
+    // Instant local state update across all components
     setProperties((prev) => {
-      const exists = prev.some((p) => p.id === sanitized.id);
+      const exists = prev.some((p) => p.id === sanitized.id || p.slug === sanitized.slug);
       const next = exists
-        ? prev.map((p) => (p.id === sanitized.id ? sanitized : p))
+        ? prev.map((p) => (p.id === sanitized.id || p.slug === sanitized.slug ? sanitized : p))
         : [sanitized, ...prev];
       localStorage.setItem(LOCAL_STORAGE_PROPERTIES_KEY, JSON.stringify(next));
+      window.dispatchEvent(new CustomEvent('properties-updated', { detail: next }));
       return next;
     });
 
-    if (isFirebaseConfigured && auth.currentUser) {
+    // If currently viewing this property and slug changed, keep viewing seamlessly
+    if (activeSlug && (activeSlug === property.slug || activeSlug === property.id)) {
+      setActiveSlug(sanitized.slug);
+      window.history.replaceState({}, '', `/imovel/${sanitized.slug}`);
+    }
+
+    // Persist to Firestore in background
+    if (isFirebaseConfigured) {
       try {
         await setDoc(doc(db, 'properties', sanitized.id), sanitized);
       } catch (error) {
-        handleFirestoreError(error, OperationType.WRITE, `properties/${sanitized.id}`);
+        console.warn('Firestore property write warning:', error);
       }
     }
   };
@@ -208,14 +269,19 @@ export default function App() {
     setProperties((prev) => {
       const next = prev.filter((p) => p.id !== id);
       localStorage.setItem(LOCAL_STORAGE_PROPERTIES_KEY, JSON.stringify(next));
+      window.dispatchEvent(new CustomEvent('properties-updated', { detail: next }));
       return next;
     });
 
-    if (isFirebaseConfigured && auth.currentUser) {
+    if (activeSlug && (activeSlug === id || properties.find((p) => p.id === id)?.slug === activeSlug)) {
+      navigateHome();
+    }
+
+    if (isFirebaseConfigured) {
       try {
         await deleteDoc(doc(db, 'properties', id));
       } catch (error) {
-        handleFirestoreError(error, OperationType.DELETE, `properties/${id}`);
+        console.warn('Firestore property delete warning:', error);
       }
     }
   };
@@ -237,18 +303,19 @@ export default function App() {
       LOCAL_STORAGE_CONFIG_KEY,
       JSON.stringify(sanitizedConfig)
     );
+    window.dispatchEvent(new CustomEvent('config-updated', { detail: sanitizedConfig }));
 
-    if (isFirebaseConfigured && auth.currentUser) {
+    if (isFirebaseConfigured) {
       try {
         await setDoc(doc(db, 'settings', 'global'), sanitizedConfig);
       } catch (error) {
-        handleFirestoreError(error, OperationType.WRITE, 'settings/global');
+        console.warn('Firestore settings write warning:', error);
       }
     }
   };
 
   const activeProperty = activeSlug
-    ? properties.find((p) => p.slug === activeSlug) || null
+    ? properties.find((p) => p.slug === activeSlug || p.id === activeSlug) || null
     : null;
 
   return (

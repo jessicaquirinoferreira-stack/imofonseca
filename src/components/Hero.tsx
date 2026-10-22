@@ -8,7 +8,12 @@ import {
   CheckCircle2,
   CalendarCheck,
 } from 'lucide-react';
-import { Property, SiteConfig, OFFICIAL_LOGO_URL } from '../data/seedProperties';
+import {
+  Property,
+  SiteConfig,
+  OFFICIAL_LOGO_URL,
+  hasPropertyPrice,
+} from '../data/seedProperties';
 import { preloadSingleImage } from '../utils/imagePreloader';
 
 interface HeroProps {
@@ -211,10 +216,18 @@ export const Hero: React.FC<HeroProps> = ({
 
                 <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-white/10">
                   <div>
-                    <span className="block text-[10px] uppercase tracking-widest text-slate-400">Valor de Investimento</span>
-                    <span className="font-mono tabular-nums text-lg sm:text-xl font-extrabold text-[#D4AF37]">
-                      {activeProperty.priceLabel}
+                    <span className="block text-[10px] uppercase tracking-widest text-slate-400">
+                      {hasPropertyPrice(activeProperty) ? 'Valor de Investimento' : 'Condições Comerciais'}
                     </span>
+                    {hasPropertyPrice(activeProperty) ? (
+                      <span className="font-mono tabular-nums text-lg sm:text-xl font-extrabold text-[#D4AF37]">
+                        {activeProperty.priceLabel}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-[#D4AF37] text-[#080C10] text-xs font-black">
+                        Sob Consulta
+                      </span>
+                    )}
                   </div>
                   <button
                     type="button"

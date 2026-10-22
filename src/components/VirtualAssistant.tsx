@@ -7,7 +7,7 @@ import {
   ArrowUpRight,
   BadgeCheck,
 } from 'lucide-react';
-import { Property, OFFICIAL_LOGO_URL } from '../data/seedProperties';
+import { Property, OFFICIAL_LOGO_URL, hasPropertyPrice } from '../data/seedProperties';
 import assistantAvatarUrl from '../assets/images/assistant-avatar.jpg';
 
 interface ChatMessage {
@@ -84,7 +84,9 @@ export const VirtualAssistant: React.FC<VirtualAssistantProps> = ({
       q.includes('sonhos') ||
       q.includes('apartamento')
     ) {
-      const names = mcmvList.map((p) => `${p.title} (${p.priceLabel})`).join(' e ');
+      const names = mcmvList
+        .map((p) => `${p.title} (${hasPropertyPrice(p) ? p.priceLabel : 'Sob Consulta'})`)
+        .join(' e ');
       return {
         text: `No segmento Minha Casa Minha Vida, trabalhamos com: ${names}. Destaque especial: parcelamos toda a sua entrada durante a obra e seu financiamento Caixa só começa quando o empreendimento termina! Aceita FGTS e subsídio federal de até R$ 55 mil. Deseja receber a simulação exata no seu WhatsApp?`,
         whatsappContext:
@@ -103,7 +105,9 @@ export const VirtualAssistant: React.FC<VirtualAssistantProps> = ({
       q.includes('villa') ||
       q.includes('palace')
     ) {
-      const names = luxuryList.map((p) => `${p.title} (${p.priceLabel})`).join(', ');
+      const names = luxuryList
+        .map((p) => `${p.title} (${hasPropertyPrice(p) ? p.priceLabel : 'Sob Consulta'})`)
+        .join(', ');
       return {
         text: `Nossa coleção Private de Alto Padrão da Imobiliária Fonseca & Cândido conta com propriedades exclusivas: ${names}. São residências com suítes master, lazer resort privativo e segurança máxima. Posso transferir você agora para nosso corretor Private Broker?`,
         whatsappContext:

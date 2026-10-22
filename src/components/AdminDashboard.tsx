@@ -20,6 +20,7 @@ import {
   PropertyCategory,
   PropertyStatus,
   SiteConfig,
+  hasPropertyPrice,
 } from '../data/seedProperties';
 import { WatermarkCanvas } from './WatermarkCanvas';
 import { slugifyPropertyTitle } from '../utils/watermark';
@@ -91,8 +92,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       title: '',
       builder: 'Imobiliária Fonseca e Cândido',
       category: 'Minha Casa Minha Vida',
-      priceLabel: 'R$ 235.000,00',
-      priceValue: 235000,
+      priceLabel: '',
+      priceValue: 0,
       location: '',
       highlight: '',
       description: '',
@@ -113,10 +114,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     if (!editingProperty) return;
     const computedSlug =
       slugifyPropertyTitle(editingProperty.title) || editingProperty.slug;
+
+    const hasValidP = hasPropertyPrice(editingProperty);
+    const finalPriceLabel = hasValidP ? editingProperty.priceLabel.trim() : 'Sob Consulta';
+    const finalPriceValue = hasValidP ? Math.max(0, Number(editingProperty.priceValue) || 0) : 0;
+
     const finalProp: Property = {
       ...editingProperty,
       id: isCreatingNew ? computedSlug : editingProperty.id,
       slug: computedSlug,
+      priceLabel: finalPriceLabel,
+      priceValue: finalPriceValue,
       images:
         editingProperty.images.length > 0
           ? editingProperty.images
@@ -325,7 +333,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             {item.title}
                           </h4>
                           <div className="font-mono tabular-nums text-xs text-slate-400">
-                            {item.priceLabel} — /imovel/{item.slug}
+                            {hasPropertyPrice(item) ? (
+                              <span className="text-[#D4AF37] font-bold">{item.priceLabel}</span>
+                            ) : (
+                              <span className="text-amber-300 font-semibold">[Sob Consulta / Botão Consultar]</span>
+                            )}{' '}
+                            — /imovel/{item.slug}
                           </div>
                         </div>
                       </div>
@@ -453,32 +466,78 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       </select>
                     </div>
 
+                    <div className="sm:col-span-2 p-3.5 rounded-xl bg-[#080C10] border border-[#D4AF37]/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div>
+                        <span className="block text-xs font-bold text-white">
+                          Exibição de Preço no Site
+                        </span>
+                        <span className="block text-[11px] text-slate-400">
+                          Se marcar como Sob Consulta ou deixar em branco, o site exibirá o botão elegante &quot;Consultar Preço&quot; e enviará o resumo para o WhatsApp. Se preencher o valor, o site mostrará o preço diretamente.
+                        </span>
+                      </div>
+                      <label className="inline-flex items-center gap-2 cursor-pointer shrink-0 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:border-[#D4AF37]/50">
+                        <input
+                          type="checkbox"
+                          checked={!hasPropertyPrice(editingProperty)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setEditingProperty({
+                                ...editingProperty,
+                                priceLabel: 'Sob Consulta',
+                                priceValue: 0,
+                              });
+                            } else {
+                              setEditingProperty({
+                                ...editingProperty,
+                                priceLabel: 'A partir de R$ 350.000,00',
+                                priceValue: 350000,
+                              });
+                            }
+                          }}
+                          className="w-4 h-4 accent-[#D4AF37] cursor-pointer"
+                        />
+                        <span className="text-xs font-bold text-[#F3E5AB]">
+                          Sob Consulta (Botão Consultar)
+                        </span>
+                      </label>
+                    </div>
+
                     <div>
-                      <label className="block text-xs text-slate-300 mb-1">Valor Exibido (R$)</label>
+                      <label className="block text-xs text-slate-300 mb-1">
+                        Valor Exibido (R$) {hasPropertyPrice(editingProperty) ? '(Visível no Site)' : '(Desativado - Sob Consulta)'}
+                      </label>
                       <input
                         type="text"
-                        required
-                        value={editingProperty.priceLabel}
+                        placeholder="Ex: A partir de R$ 545.000,00"
+                        disabled={!hasPropertyPrice(editingProperty)}
+                        value={hasPropertyPrice(editingProperty) ? editingProperty.priceLabel : ''}
                         onChange={(e) =>
                           setEditingProperty({ ...editingProperty, priceLabel: e.target.value })
                         }
-                        className="w-full rounded-lg bg-[#0B0F14] border border-white/15 px-3.5 py-2 text-sm text-white"
+                        className="w-full rounded-lg bg-[#0B0F14] border border-white/15 px-3.5 py-2 text-sm text-white disabled:opacity-50 disabled:cursor-not-allowed"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs text-slate-300 mb-1">Valor Numérico (Simulador)</label>
+                      <label className="block text-xs text-slate-300 mb-1">
+                        Valor Numérico (Para Simulador Caixa)
+                      </label>
                       <input
                         type="number"
-                        required
-                        value={editingProperty.priceValue}
+                        placeholder="Ex: 545000"
+                        disabled={!hasPropertyPrice(editingProperty)}
+                        value={
+                          hasPropertyPrice(editingProperty) && editingProperty.priceValue > 0
+                            ? editingProperty.priceValue
+                            : ''
+                        }
                         onChange={(e) =>
                           setEditingProperty({
                             ...editingProperty,
                             priceValue: Number(e.target.value),
                           })
                         }
-                        className="w-full rounded-lg bg-[#0B0F14] border border-white/15 px-3.5 py-2 text-sm text-white"
+                        className="w-full rounded-lg bg-[#0B0F14] border border-white/15 px-3.5 py-2 text-sm text-white disabled:opacity-50 disabled:cursor-not-allowed"
                       />
                     </div>
 
